@@ -48,7 +48,7 @@ struct ItemInstance {
 	Item* item;
 	uintptr_t* block;
 };
-struct ItemInstance*(*ItemInstance)(const Item*, int);
+static ItemInstance*(*ItemInstance)(const Item*, int);
 
 enum struct CreativeItemCategory : unsigned char {
 	BLOCKS = 1,
