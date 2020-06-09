@@ -70,14 +70,14 @@ static Item*(*Item$setIcon)(Item*, const std::string&, int);
 
 static void(*Item$addCreativeItem)(const ItemInstance&);
 
-static ItemInstance*(*ItemInstance$ItemInstance)(const Item*, int);
+static ItemInstance*(*ItemInstance$ItemInstance)(ItemInstance*, const Item*, int);
 
 int tim = 453;
 
 static void (*Item_initClientData)(uintptr_t*);
 static void _Item_initClientData(uintptr_t* self) {
 
-	Item* myItemPtr = (Item*) malloc(sizeof(Item));
+	Item* myItemPtr = new Item();
 
 	Item$Item(myItemPtr, "testitem", tim - 0x100);
 
@@ -93,8 +93,9 @@ static void _Item_initClientData(uintptr_t* self) {
 //Item::addCreativeItemのアドレスは合ってる
 static void (*Item_initCreativeItems)(uintptr_t*);
 static void _Item_initCreativeItems(uintptr_t* self) {
-
-	Item$addCreativeItem(*ItemInstance$ItemInstance(Item$mItems[tim], 0));
+	ItemInstance* inst = new ItemInstance();
+	ItemInstance$ItemInstance(inst, Item$mItems[tim], 0);
+	Item$addCreativeItem(*inst);
 
 	Item_initCreativeItems(self);
 }
@@ -116,5 +117,5 @@ static std::string _Common_getGameDevVersionString(uintptr_t* common) {
 
 	Item$addCreativeItem = (void(*)(const ItemInstance&))(0x100745f10 + _dyld_get_image_vmaddr_slide(0));
 
-	ItemInstance$ItemInstance = (ItemInstance*(*)(const Item*, int))(0x1007569a4 + _dyld_get_image_vmaddr_slide(0));
+	ItemInstance$ItemInstance = (ItemInstance*(*)(ItemInstance*, const Item*, int))(0x1007569a4 + _dyld_get_image_vmaddr_slide(0));
 }
