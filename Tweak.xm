@@ -85,7 +85,7 @@ static void _Item_initClientData(uintptr_t* self) {
 static void (*Item_initCreativeItems)(uintptr_t*);
 static void _Item_initCreativeItems(uintptr_t* self) {
 	Item* myItemPtr = new Item();
-	Item$Item(myItemPtr, "testitem", tim - 0x100);
+	//Item$Item(myItemPtr, "testitem", tim - 0x100);
 	Item$mItems[tim] = myItemPtr;
 	Item$setIcon(Item$mItems[257], "apple", 0);
 	//myItemPtr->creativeCategory = 3;
