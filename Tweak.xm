@@ -87,7 +87,7 @@ static void _Item_initCreativeItems(uintptr_t* self) {
 	Item* myItemPtr = new Item();
 	Item$Item(myItemPtr, "testitem", tim - 0x100);
 	Item$mItems[tim] = myItemPtr;
-	Item$setIcon(Item$mItems[1], "apple", 0);
+	Item$setIcon(Item$mItems[257], "apple", 0);
 	myItemPtr->creativeCategory = 3;
 	
 	ItemInstance* inst = new ItemInstance();
