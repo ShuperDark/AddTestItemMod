@@ -27,67 +27,94 @@
 #include <stdint.h>
 #include <dlfcn.h>
 
-struct Item {
-	void** vtable;
-	char filler[56];
-};
-static Item** Item$mItems;
-static Item*(*Item)(const std::string&, short);
-static Item*(*setIcon)(const std::string&, int);
-static void(*setCategory)(CreativeItemCategory);
-static void(*setMaxStackSize)(unsigned char);
-static void(*setStackedByData)(bool);
-static void(*addCreativeItem)(const ItemInstance&);
+typedef struct {
+	uintptr_t** vtable;
+	uint8_t maxStackSize;
+	int idk;
+	std::string atlas;
+	int frameCount;
+	bool animated;
+	short itemId;
+	std::string name;
+	std::string idk3;
+	bool isMirrored;
+	short maxDamage;
+	bool isGlint;
+	bool renderAsTool;
+	bool stackedByData;
+	uint8_t properties;
+	int maxUseDuration;
+	bool explodeable;
+	bool shouldDespawn;
+	bool idk4;
+	uint8_t useAnimation;
+	int creativeCategory;
+	float idk5;
+	float idk6;
+	uintptr_t& icon;
+	char filler[44];
+} Item;
 
-struct ItemInstance {
-	void** vtable;
-	unsigned char count;
-	unsigned short aux;
-	uintptr_t* userData;
-	bool valid;
+typedef struct {
+	uint8_t count;
+	uint16_t aux;
+	uintptr_t* tag;
 	Item* item;
 	uintptr_t* block;
-};
-static ItemInstance*(*ItemInstance)(const Item*, int);
+	int idk[3];
+} ItemInstance;
 
-enum struct CreativeItemCategory : unsigned char {
-	BLOCKS = 1,
-	DECORATIONS,
-	TOOLS,
-	ITEMS
-};
+static Item** Item$mItems;
+static Item*(*Item$Item)(Item*, const std::string&, short);
+static Item*(*Item$setIcon)(Item*, const std::string&, int);
 
-int tim = 1000;
+static void(*Item$addCreativeItem)(const ItemInstance&);
 
-static void (*Item_initClientData)(Item*);
-static void _Item_initClientData(Item* self) {
-	Item$mItems[tim] = new Item("testitem", tim - 256);
-	Item$mItems[tim]->setIcon("apple", 0);
-	Item$mItems[tim]->setCategory(CreativeItemCategory::ITEMS);
-	Item$mItems[tim]->setMaxStackSize(64);
-	Item$mItems[tim]->setStackedByData(true);
+static ItemInstance*(*ItemInstance$ItemInstance)(const Item*, int);
+
+int tim = 453;
+
+static void (*Item_initClientData)(uintptr_t*);
+static void _Item_initClientData(uintptr_t* self) {
+
+	Item* myItemPtr = (Item*) malloc(sizeof(Item));
+
+	Item$Item(myItemPtr, "testitem", tim - 0x100);
+
+	Item$mItems[tim] = myItemPtr;
+	Item$setIcon(myItemPtr, "apple", 0);
+	myItemPtr->creativeCategory = 3;
 
 	Item_initClientData(self);
 }
 
-static void (*Item_initCreativeItems)(Item*);
-static void _Item_initCreativeItems(Item* self) {
-	addCreativeItem(ItemInstance(Item$mItems[tim], 0));
+//おそらくクリエに追加しているのが原因...?
+//ItemInstanceのコンストラクタの型がダメ?
+//Item::addCreativeItemのアドレスは合ってる
+static void (*Item_initCreativeItems)(uintptr_t*);
+static void _Item_initCreativeItems(uintptr_t* self) {
+
+	Item$addCreativeItem(*ItemInstance$ItemInstance(Item$mItems[tim], 0));
 
 	Item_initCreativeItems(self);
+}
+
+static std::string (*Common_getGameDevVersionString)(uintptr_t*);
+static std::string _Common_getGameDevVersionString(uintptr_t* common) {
+
+	return "Modded!";
 }
 
 %ctor {
 	MSHookFunction((void*)(0x10074242c + _dyld_get_image_vmaddr_slide(0)), (void*)&_Item_initClientData, (void**)&Item_initClientData);
 	MSHookFunction((void*)(0x100734d00 + _dyld_get_image_vmaddr_slide(0)), (void*)&_Item_initCreativeItems, (void**)&Item_initCreativeItems);
+	MSHookFunction((void*)(0x10006bc94 + _dyld_get_image_vmaddr_slide(0)), (void*)&_Common_getGameDevVersionString, (void**)&Common_getGameDevVersionString);
 
 	Item$mItems = (Item**)(0x1012ae238 + _dyld_get_image_vmaddr_slide(0));
-	Item = (Item*(*)(const std::string&, short))(0x10074689c + _dyld_get_image_vmaddr_slide(0));
-	setIcon = (Item*(*)(const std::string&, int))(0x100746b0c + _dyld_get_image_vmaddr_slide(0));
-	setCategory = (void(*)(CreativeItemCategory))(0x100746dd0 + _dyld_get_image_vmaddr_slide(0));
-	setMaxStackSize = (void(*)(unsigned char))(0x100746a88 + _dyld_get_image_vmaddr_slide(0));
-	setStackedByData = (void(*)(bool))(0x100747974 + _dyld_get_image_vmaddr_slide(0));
-	addCreativeItem = (void(*)(const ItemInstance&))(0x100745f10 + _dyld_get_image_vmaddr_slide(0));
+	Item$Item = (Item*(*)(Item*, const std::string&, short))(0x10074689c + _dyld_get_image_vmaddr_slide(0));
+	Item$setIcon = (Item*(*)(Item*, const std::string&, int))(0x100746b0c + _dyld_get_image_vmaddr_slide(0));
 
-	ItemInstance = (ItemInstance*(*)(const Item*, int))(0x1007569a4 + _dyld_get_image_vmaddr_slide(0));
+	Item$addCreativeItem = (void(*)(const ItemInstance&))(0x100745f10 + _dyld_get_image_vmaddr_slide(0));
+
+	ItemInstance$ItemInstance = (ItemInstance*(*)(const Item*, int))(0x1007569a4 + _dyld_get_image_vmaddr_slide(0));
 }
