@@ -76,15 +76,6 @@ int tim = 453;
 
 static void (*Item_initClientData)(uintptr_t*);
 static void _Item_initClientData(uintptr_t* self) {
-
-	Item* myItemPtr = new Item();
-
-	Item$Item(myItemPtr, "testitem", tim - 0x100);
-
-	Item$mItems[tim] = myItemPtr;
-	Item$setIcon(myItemPtr, "apple", 0);
-	myItemPtr->creativeCategory = 3;
-
 	Item_initClientData(self);
 }
 
@@ -93,6 +84,12 @@ static void _Item_initClientData(uintptr_t* self) {
 //Item::addCreativeItemのアドレスは合ってる
 static void (*Item_initCreativeItems)(uintptr_t*);
 static void _Item_initCreativeItems(uintptr_t* self) {
+	Item* myItemPtr = new Item();
+	Item$Item(myItemPtr, "testitem", tim - 0x100);
+	Item$mItems[tim] = myItemPtr;
+	Item$setIcon(myItemPtr, "apple", 0);
+	myItemPtr->creativeCategory = 3;
+	
 	ItemInstance* inst = new ItemInstance();
 	ItemInstance$ItemInstance(inst, Item$mItems[tim], 0);
 	Item$addCreativeItem(*inst);
