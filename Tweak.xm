@@ -51,7 +51,7 @@ typedef struct {
 	int creativeCategory;
 	float idk5;
 	float idk6;
-	uintptr_t& icon;
+	uintptr_t* icon;
 	char filler[44];
 } Item;
 
