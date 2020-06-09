@@ -91,7 +91,7 @@ static void _Item_initCreativeItems(uintptr_t* self) {
 	myItemPtr->creativeCategory = 3;
 	
 	ItemInstance* inst = new ItemInstance();
-	ItemInstance$ItemInstance(inst, Item$mItems[tim], 0);
+	ItemInstance$ItemInstance(inst, Item$mItems[1], 0);
 	Item$addCreativeItem(*inst);
 
 	Item_initCreativeItems(self);
