@@ -1,68 +1,48 @@
-#import "../substrate.h"
-#import <UIKit/UIKit.h>
-#import <mach-o/dyld.h>
-#import <initializer_list>
-#import <vector>
-#import <map>
-#import <mach-o/dyld.h>
-#import <string>
-#import <Foundation/Foundation.h>
-#import <UIKit/UIKit.h>
-#import <initializer_list>
-#import <vector>
-#import <mach-o/dyld.h>
-#import <UIKit/UIKit.h>
-#import <iostream>
-#import <stdio.h>
-#include <sstream>
-#include <sys/sysctl.h>
-#include <net/if.h>
-#include <net/if_dl.h>
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <string.h>
-#include <algorithm>
-#include <fstream>
-#include <ifaddrs.h>
-#include <stdint.h>
-#include <dlfcn.h>
+#include "substrate.h"
+#include <string>
+#include <cstdio>
+#include <mach-o/dyld.h>
 
-typedef struct {
-	uintptr_t** vtable;
-	uint8_t maxStackSize;
-	int idk;
-	std::string atlas;
-	int frameCount;
-	bool animated;
-	short itemId;
-	std::string name;
-	std::string idk3;
-	bool isMirrored;
-	short maxDamage;
-	bool isGlint;
-	bool renderAsTool;
-	bool stackedByData;
-	uint8_t properties;
-	int maxUseDuration;
-	bool explodeable;
-	bool shouldDespawn;
-	bool idk4;
-	uint8_t useAnimation;
-	int creativeCategory;
-	float idk5;
-	float idk6;
-	uintptr_t* icon;
-	char filler[44];
-} Item;
 
-typedef struct {
+struct TextureUVCoordinateSet;
+
+struct Item {
+	uintptr_t** vtable; // 0
+	uint8_t maxStackSize; // 8
+	int idk; // 12
+	std::string atlas; // 16
+	int frameCount; // 40
+	bool animated; // 44
+	short itemId; // 46
+	std::string name; // 48
+	std::string idk3; // 72
+	bool isMirrored; // 96
+	short maxDamage; // 98
+	bool isGlint; // 100
+	bool renderAsTool; // 101
+	bool stackedByData; // 102
+	uint8_t properties; // 103
+	int maxUseDuration; // 104
+	bool explodeable; // 108
+	bool shouldDespawn; // 109
+	bool idk4; // 110
+	uint8_t useAnimation; // 111
+	int creativeCategory; // 112
+	float idk5; // 116
+	float idk6; // 120
+	char buffer[12]; // 124
+	TextureUVCoordinateSet* icon; // 136
+	char filler[100];
+};
+
+struct ItemInstance {
 	uint8_t count;
 	uint16_t aux;
 	uintptr_t* tag;
 	Item* item;
 	uintptr_t* block;
 	int idk[3];
-} ItemInstance;
+};
 
 static Item** Item$mItems;
 static Item*(*Item$Item)(Item*, const std::string&, short);
@@ -70,43 +50,48 @@ static Item*(*Item$setIcon)(Item*, const std::string&, int);
 
 static void(*Item$addCreativeItem)(const ItemInstance&);
 
-static ItemInstance*(*ItemInstance$ItemInstance)(ItemInstance*, const Item*, int);
+static ItemInstance*(*ItemInstance$ItemInstance)(ItemInstance*, int, int, int);
 
 int tim = 453;
+Item* myItemPtr;
 
-static void (*Item_initClientData)(uintptr_t*);
-static void _Item_initClientData(uintptr_t* self) {
-	Item_initClientData(self);
+
+static void (*_Item$initCreativeItems)();
+static void Item$initCreativeItems() {
+	_Item$initCreativeItems();
+
+	ItemInstance inst;
+	ItemInstance$ItemInstance(&inst, tim, 1, 0);
+	Item$addCreativeItem(inst);	
 }
 
-//おそらくクリエに追加しているのが原因...?
-//ItemInstanceのコンストラクタの型がダメ?
-//Item::addCreativeItemのアドレスは合ってる
-static void (*Item_initCreativeItems)(uintptr_t*);
-static void _Item_initCreativeItems(uintptr_t* self) {
-	Item* myItemPtr = new Item();
-	//Item$Item(myItemPtr, "testitem", tim - 0x100);
+static void (*_Item$registerItems)();
+static void Item$registerItems() {
+	_Item$registerItems();
+
+	myItemPtr = new Item();
+	Item$Item(myItemPtr, "testitem", tim - 0x100);
 	Item$mItems[tim] = myItemPtr;
-	//Item$setIcon(Item$mItems[257], "apple", 0);
-	//myItemPtr->creativeCategory = 3;
-	
-	ItemInstance* inst = new ItemInstance();
-	ItemInstance$ItemInstance(inst, Item$mItems[1], 0);
-	Item$addCreativeItem(*inst);
-
-	Item_initCreativeItems(self);
+	myItemPtr->creativeCategory = 3;
 }
 
-static std::string (*Common_getGameDevVersionString)(uintptr_t*);
-static std::string _Common_getGameDevVersionString(uintptr_t* common) {
+static void (*_Item$initClientData)();
+static void Item$initClientData() {
+	_Item$initClientData();
 
-	return "Modded!";
+	Item$setIcon(myItemPtr, "test", 0);
+}
+
+static std::string (*_Common$getGameDevVersionString)(uintptr_t*);
+static std::string Common$getGameDevVersionString(uintptr_t* common) {
+	return "Hacked!";
 }
 
 %ctor {
-	MSHookFunction((void*)(0x10074242c + _dyld_get_image_vmaddr_slide(0)), (void*)&_Item_initClientData, (void**)&Item_initClientData);
-	MSHookFunction((void*)(0x100734d00 + _dyld_get_image_vmaddr_slide(0)), (void*)&_Item_initCreativeItems, (void**)&Item_initCreativeItems);
-	MSHookFunction((void*)(0x10006bc94 + _dyld_get_image_vmaddr_slide(0)), (void*)&_Common_getGameDevVersionString, (void**)&Common_getGameDevVersionString);
+	MSHookFunction((void*)(0x100734d00 + _dyld_get_image_vmaddr_slide(0)), (void*)&Item$initCreativeItems, (void**)&_Item$initCreativeItems);
+	MSHookFunction((void*)(0x100733348 + _dyld_get_image_vmaddr_slide(0)), (void*)&Item$registerItems, (void**)&_Item$registerItems);
+	MSHookFunction((void*)(0x10074242c + _dyld_get_image_vmaddr_slide(0)), (void*)&Item$initClientData, (void**)&_Item$initClientData);
+	MSHookFunction((void*)(0x10006bc94 + _dyld_get_image_vmaddr_slide(0)), (void*)&Common$getGameDevVersionString, (void**)&_Common$getGameDevVersionString);
 
 	Item$mItems = (Item**)(0x1012ae238 + _dyld_get_image_vmaddr_slide(0));
 	Item$Item = (Item*(*)(Item*, const std::string&, short))(0x10074689c + _dyld_get_image_vmaddr_slide(0));
@@ -114,5 +99,5 @@ static std::string _Common_getGameDevVersionString(uintptr_t* common) {
 
 	Item$addCreativeItem = (void(*)(const ItemInstance&))(0x100745f10 + _dyld_get_image_vmaddr_slide(0));
 
-	ItemInstance$ItemInstance = (ItemInstance*(*)(ItemInstance*, const Item*, int))(0x1007569a4 + _dyld_get_image_vmaddr_slide(0));
+	ItemInstance$ItemInstance = (ItemInstance*(*)(ItemInstance*, int, int, int))(0x100756c70 + _dyld_get_image_vmaddr_slide(0));
 }
